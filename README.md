@@ -1,6 +1,7 @@
 # MIMIC: A Generative Multimodal Foundation Model for Biomolecules
 
 [![Paper](https://img.shields.io/badge/arXiv-2604.24506-b31b1b.svg)](https://arxiv.org/abs/2604.24506)
+[![Blog](https://img.shields.io/badge/Blog-MIMIC%20Post-0ea5e9.svg)](https://polymathic-ai.org/blog/mimic/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Model](https://img.shields.io/badge/Model-Release%20in%20Progress-orange.svg)](#open-source-status)
 [![Dataset](https://img.shields.io/badge/LORE-Release%20in%20Progress-orange.svg)](#open-source-status)
@@ -52,6 +53,7 @@ Scale highlights:
 ## Links
 
 - **Paper:** [arXiv:2604.24506](https://arxiv.org/abs/2604.24506)
+- **Blog post:** [MIMIC announcement and technical overview](https://polymathic-ai.org/blog/mimic/)
 
 ## Open Source Status
 
