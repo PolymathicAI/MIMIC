@@ -24,6 +24,8 @@ Most biological AI systems treat sequence, structure, and function as separate t
 - **RNA structure support:** Predicts probing-like reactivity tracks that improve downstream RNA secondary-structure inference.
 - **Transfer learning:** Delivers strong performance across diverse RNA and protein downstream benchmarks.
 
+![MIMIC any-to-any flow poster](assets/AnyToAnyFlow-poster.jpg)
+
 ## Architecture at a Glance
 
 - ~1B parameter encoder-decoder transformer
@@ -32,6 +34,8 @@ Most biological AI systems treat sequence, structure, and function as separate t
 - Register-token compression for global molecular context
 - Multi-pathway training for partially observed modality combinations
 - Curriculum scaling of context length (1k to 10k tokens)
+
+![MIMIC architecture](assets/MIMIC_architecture.png)
 
 ## LORE Dataset (Training Backbone)
 
@@ -42,6 +46,8 @@ Scale highlights:
 - 15.5M proteins
 - 4B+ natural language tokens
 - 6000+ organisms
+
+![LORE dataset poster](assets/DatasetTable-poster.jpg)
 
 ## Links
 
@@ -65,3 +71,7 @@ If you use this work, please cite:
   primaryClass={q-bio}
 }
 ```
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
