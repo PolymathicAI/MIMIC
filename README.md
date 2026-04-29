@@ -64,13 +64,14 @@ MIMIC model code/weights and LORE release assets are in preparation for public r
 If you use this work, please cite:
 
 ```bibtex
-@article{golkar2026mimic,
-  title={MIMIC: A Generative Multimodal Foundation Model for Biomolecules},
-  author={Golkar, Siavash et al.},
-  year={2026},
-  eprint={2604.24506},
-  archivePrefix={arXiv},
-  primaryClass={q-bio}
+@misc{golkar2026mimicgenerativemultimodalfoundation,
+      title={MIMIC: A Generative Multimodal Foundation Model for Biomolecules}, 
+      author={Siavash Golkar and Jake Kovalic and Irina Espejo Morales and Samuel Sledzieski and Minhuan Li and Ksenia Sokolova and Geraud Krawezik and Alberto Bietti and Claudia Skok Gibbs and Roman Klypa and Shengwei Xiong and Francois Lanusse and Liam Parker and Kyunghyun Cho and Miles Cranmer and Tom Hehir and Michael McCabe and Lucas Meyer and Rudy Morel and Payel Mukhopadhyay and Mariel Pettee and Helen Qu and Jeff Shen and David Fouhey and Hadi Sotoudeh and Vikram Mulligan and Pilar Cossio and Sonya M. Hanson and Alisha N. Jones and Olga G. Troyanskaya and Shirley Ho},
+      year={2026},
+      eprint={2604.24506},
+      archivePrefix={arXiv},
+      primaryClass={cs.AI},
+      url={https://arxiv.org/abs/2604.24506}, 
 }
 ```
 
