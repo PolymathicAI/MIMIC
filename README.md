@@ -44,8 +44,7 @@ including `transformers` (free-text / semantic-context BioBERT tokenizer) and
 `biotite` (protein-structure I/O). ESM3 VQVAE weights for structure detokenization
 download on first use.
 
-The build/distribution name is **`mimic-cd`** (the name `mimic` was taken), but the
-import package is `mimic` — i.e. `from mimic import load_pretrained`.
+The package imports as `mimic` — i.e. `from mimic import load_pretrained`.
 
 Pretrained weights (`config.json` + `model.safetensors`) are hosted separately on the
 [Hugging Face Hub](https://huggingface.co/polymathic-ai/MIMIC) and downloaded on demand
