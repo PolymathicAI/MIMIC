@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/MIMIC_logo.png" alt="MIMIC" width="320">
+</p>
+
 # MIMIC: A Generative Multimodal Foundation Model for Biomolecules
 
 [![Paper](https://img.shields.io/badge/arXiv-2604.24506-b31b1b.svg)](https://arxiv.org/abs/2604.24506)
@@ -35,19 +39,13 @@ MIMIC requires Python 3.10+ and installs cleanly with either `pip` or [`uv`](htt
 pip install git+https://github.com/PolymathicAI/MIMIC.git
 ```
 
-The base install is intentionally lightweight (`torch`, `x-transformers`, `einops`,
-`numpy`, `safetensors`, `huggingface_hub`). Modality-specific extras pull heavier
-dependencies only when you need them:
+This installs everything needed to run the full model across all modalities,
+including `transformers` (free-text / semantic-context BioBERT tokenizer) and
+`biotite` (protein-structure I/O). ESM3 VQVAE weights for structure detokenization
+download on first use.
 
-```bash
-pip install "mimic-cd[structure] @ git+https://github.com/PolymathicAI/MIMIC.git"  # protein structure (biotite + ESM3 VQVAE)
-pip install "mimic-cd[text]      @ git+https://github.com/PolymathicAI/MIMIC.git"  # free-text / context (transformers / BioBERT)
-pip install "mimic-cd[all]       @ git+https://github.com/PolymathicAI/MIMIC.git"  # everything
-```
-
-The project is named **`mimic-cd`** (the name `mimic` was taken), but the import
-package is `mimic` — i.e. `from mimic import load_pretrained`. A PyPI release is
-planned; for now install from GitHub.
+The build/distribution name is **`mimic-cd`** (the name `mimic` was taken), but the
+import package is `mimic` — i.e. `from mimic import load_pretrained`.
 
 Pretrained weights (`config.json` + `model.safetensors`) are hosted separately on the
 [Hugging Face Hub](https://huggingface.co/polymathic-ai/MIMIC) and downloaded on demand
@@ -62,25 +60,26 @@ from mimic import load_pretrained
 # device="auto" uses CUDA if available, else CPU.
 model = load_pretrained(version="1.0")
 
-# --- Embedding: encode one or more modalities into joint representations ---
-model.input([{"rna_seq": "ACGUACGUACGUACGUACGUACGU"}])
-reps = model.embed(sep_encodings=False)   # {"full", "mask"/"mod_ids" (per-token group ids), "register"}
+# Real matched examples from LORE (raw view = modality name -> raw value).
+from datasets import load_dataset
+ex = load_dataset("polymathic-ai/LORE-examples", split="train")   # default config = raw
+prot = next(r for r in ex if r["kind"] == "protein")              # has aa_seq + sasa
+rna  = next(r for r in ex if r["kind"] == "rna")                  # has rna_seq + splice_jctns_5cls
 
-# --- Masked generation (infill): mask positions in a modality and regenerate them ---
-# Masking is done on token ids, not characters (a literal "_" would tokenize to UNK,
-# not the mask token): tokenize, set the positions you want filled to the mask id,
-# then pass them under the `tok_` key.
-rna = model.tokenizers["tok_rna_seq"]
-ids = list(rna.tokenize("ACGUACGUACGUACGUACGUACGU"))
-ids[8:16] = [rna.mask_token_id] * 8                 # mask an 8-nt stretch
-model.input([{"tok_rna_seq": ids}])
-out = model.generate("rna_seq")                     # default strategy = Ensemble
-print(out["rna_seq"])                               # "ACGU..." — the 8 nucleotides filled in
+# --- Embedding: encode a real transcript into joint representations ---
+model.input([{"rna_seq": rna["rna_seq"]}])
+reps = model.embed()                                # {"full": [B, N, D], "mod_ids": [B, N] per-token group ids}
+# opt into more: model.embed(return_register=True, return_modality=True)
 
-# --- Any-to-any generation: condition on one modality, generate another ---
-model.input([{"rna_seq": "ACGUACGUACGUACGUACGUACGU"}])
+# --- Generation demo 1: protein sequence -> per-residue solvent accessibility ---
+model.input([{"aa_seq": prot["aa_seq"]}])
+out = model.generate("sasa")                        # default strategy = Ensemble
+print(out["sasa"])                                  # per-residue SASA (float array)
+
+# --- Generation demo 2: RNA sequence -> per-position splice-site classes ---
+model.input([{"rna_seq": rna["rna_seq"]}])
 out = model.generate("splice_jctns_5cls")           # RNA -> per-position splice sites
-print(out["splice_jctns_5cls"])                     # one site-type class per position
+print(out["splice_jctns_5cls"])                     # one 5-class site label per position
 
 # generate() returns the detokenized prediction by default; pass return_tokens /
 # return_logits / return_probs / return_sampling_probs to also get the raw arrays
@@ -122,7 +121,7 @@ Scale highlights:
 
 ## Open Source Status
 
-- **Code / package:** this repository (MIT) — `pip install git+https://github.com/PolymathicAI/MIMIC.git` (`mimic-cd`; PyPI release planned).
+- **Code / package:** this repository (MIT) — `pip install git+https://github.com/PolymathicAI/MIMIC.git` (imports as `mimic`).
 - **Weights:** [`polymathic-ai/MIMIC`](https://huggingface.co/polymathic-ai/MIMIC) on the Hugging Face Hub.
 - **Example data:** [`polymathic-ai/LORE-examples`](https://huggingface.co/datasets/polymathic-ai/LORE-examples).
 

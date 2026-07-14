@@ -24,9 +24,15 @@ def model():
 
 def test_embed(model):
     model.input([{"rna_seq": "ACGUACGUACGUACGU"}])
-    reps = model.embed(sep_encodings=False)
+    reps = model.embed()
     assert reps["full"].isfinite().all()
     assert reps["full"].shape[-1] == 1536
+    # default returns 'full' + 'mod_ids' only; 'mod_ids' indexes 'full' positionwise
+    assert set(reps) == {"full", "mod_ids"}
+    assert reps["mod_ids"].shape == reps["full"].shape[:2]
+    # opt-in keys
+    reps2 = model.embed(return_modality=True)
+    assert "modality" in reps2 and 0 in reps2["modality"]
 
 
 def test_masked_generation(model):
@@ -72,12 +78,13 @@ def test_pathway_gate_allows_within_track(model):
     assert "is_coding" in out
 
 
-def test_pathway_gate_allows_seq_translation(model):
-    """RNA<->protein sequence translation is allowlisted, so not gated (default error mode).
-
-    aa_seq is a different summation group than rna_seq, so its length can't be inferred
-    and target_lens must be given -- the point here is that the gate does NOT raise.
-    """
+def test_pathway_gate_seq_translation_now_cross_track(model):
+    """RNA<->protein sequence translation is cross-track and NOT in the (empty) allowlist,
+    so it is gated by default; on_unsupported='allow' still runs it."""
+    from mimic.modality_info import PATHWAY_ALLOWLIST
+    assert PATHWAY_ALLOWLIST == set()                              # no cross-track pathways enabled
     model.input([{"rna_seq": "ACGUACGUACGUACGUACGUACGU"}])
-    out = model.generate("aa_seq", verbose=False, target_lens=8)   # allowlisted; explicit length
+    with pytest.raises(ValueError, match="Untrusted generation pathway"):
+        model.generate("aa_seq", verbose=False, target_lens=8)    # default = error
+    out = model.generate("aa_seq", verbose=False, target_lens=8, on_unsupported="allow")
     assert "aa_seq" in out and isinstance(out["aa_seq"], str)

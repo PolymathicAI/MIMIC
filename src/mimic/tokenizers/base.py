@@ -381,44 +381,45 @@ class TextTokenizer(BaseTokenizer):
 
 # %%
 # testing each class with a simple example
-import numpy as np
+# These self-tests are guarded so that importing `mimic` has no side effects;
+# the same checks are exercised as a proper suite in tests/test_tokenizers.py.
+if __name__ == "__main__":
+    char_tokenizer = CharLevelTokenizer(
+        vocab_list=["A", "C", "G", "T"], unk_token="X", version=None
+    )
+    assert char_tokenizer.detokenize(char_tokenizer.tokenize("ACGTO")) == "ACGTX"
 
-char_tokenizer = CharLevelTokenizer(
-    vocab_list=["A", "C", "G", "T"], unk_token="X", version=None
-)
-assert char_tokenizer.detokenize(char_tokenizer.tokenize("ACGTO")) == "ACGTX"
+    digitizer = DigitizeTokenizer(bins=[0, 1, 2, 3, 4], version=None)
+    out = digitizer.detokenize(digitizer.tokenize([0.5, 1.5, 2.5, 3.5, 4.5, np.nan]))
+    assert np.isnan(out[-1]) and np.isnan(out[-2])
+    assert (np.array(out[:-2]) - np.array([0.5, 1.5, 2.5, 3.5])).max() < 0.01
 
-digitizer = DigitizeTokenizer(bins=[0, 1, 2, 3, 4], version=None)
-out = digitizer.detokenize(digitizer.tokenize([0.5, 1.5, 2.5, 3.5, 4.5, np.nan]))
-assert np.isnan(out[-1]) and np.isnan(out[-2])
-assert (np.array(out[:-2]) - np.array([0.5, 1.5, 2.5, 3.5])).max() < 0.01
+    # weighted-mean detokenize: 3 positions, non-trivial probs
+    # bins [0,1,2,3,4] -> centers 0.5, 1.5, 2.5, 3.5
+    tokens_w = [0, 1, 2]  # dummy tokens (ignored when probs given)
+    probs_w = np.zeros((3, digitizer.vocab_size))
+    probs_w[0, 0], probs_w[0, 1] = 0.5, 0.5  # expect 0.5*0.5 + 0.5*1.5 = 1.0
+    probs_w[1, 2] = 1.0  # one-hot -> 2.5
+    probs_w[2, 1], probs_w[2, 2] = 0.25, 0.75  # expect 0.25*1.5 + 0.75*2.5 = 2.25
+    out_w = digitizer.detokenize(tokens_w, probs=probs_w)
+    assert len(out_w) == 3
+    expected_0 = 0.5 * digitizer.id_to_token[0] + 0.5 * digitizer.id_to_token[1]
+    expected_1 = digitizer.id_to_token[2]
+    expected_2 = 0.25 * digitizer.id_to_token[1] + 0.75 * digitizer.id_to_token[2]
+    assert abs(out_w[0] - expected_0) < 1e-9 and abs(out_w[1] - expected_1) < 1e-9 and abs(out_w[2] - expected_2) < 1e-9
+    # same result when probs has shape (len(x), vocab_size - 3)
+    probs_bins_only = probs_w[:, : digitizer.vocab_size - 3]
+    out_w_short = digitizer.detokenize(tokens_w, probs=probs_bins_only)
+    assert abs(out_w_short[0] - expected_0) < 1e-9 and abs(out_w_short[1] - expected_1) < 1e-9 and abs(out_w_short[2] - expected_2) < 1e-9
+    # x optional when probs given: same result with probs only
+    out_w_no_x = digitizer.detokenize(probs=probs_w)
+    assert abs(out_w_no_x[0] - expected_0) < 1e-9 and abs(out_w_no_x[1] - expected_1) < 1e-9 and abs(out_w_no_x[2] - expected_2) < 1e-9
 
-# weighted-mean detokenize: 3 positions, non-trivial probs
-# bins [0,1,2,3,4] -> centers 0.5, 1.5, 2.5, 3.5
-tokens_w = [0, 1, 2]  # dummy tokens (ignored when probs given)
-probs_w = np.zeros((3, digitizer.vocab_size))
-probs_w[0, 0], probs_w[0, 1] = 0.5, 0.5  # expect 0.5*0.5 + 0.5*1.5 = 1.0
-probs_w[1, 2] = 1.0  # one-hot -> 2.5
-probs_w[2, 1], probs_w[2, 2] = 0.25, 0.75  # expect 0.25*1.5 + 0.75*2.5 = 2.25
-out_w = digitizer.detokenize(tokens_w, probs=probs_w)
-assert len(out_w) == 3
-expected_0 = 0.5 * digitizer.id_to_token[0] + 0.5 * digitizer.id_to_token[1]
-expected_1 = digitizer.id_to_token[2]
-expected_2 = 0.25 * digitizer.id_to_token[1] + 0.75 * digitizer.id_to_token[2]
-assert abs(out_w[0] - expected_0) < 1e-9 and abs(out_w[1] - expected_1) < 1e-9 and abs(out_w[2] - expected_2) < 1e-9
-# same result when probs has shape (len(x), vocab_size - 3)
-probs_bins_only = probs_w[:, : digitizer.vocab_size - 3]
-out_w_short = digitizer.detokenize(tokens_w, probs=probs_bins_only)
-assert abs(out_w_short[0] - expected_0) < 1e-9 and abs(out_w_short[1] - expected_1) < 1e-9 and abs(out_w_short[2] - expected_2) < 1e-9
-# x optional when probs given: same result with probs only
-out_w_no_x = digitizer.detokenize(probs=probs_w)
-assert abs(out_w_no_x[0] - expected_0) < 1e-9 and abs(out_w_no_x[1] - expected_1) < 1e-9 and abs(out_w_no_x[2] - expected_2) < 1e-9
+    bool_tokenizer = BoolTokenizer(version=None)
+    assert bool_tokenizer.detokenize(
+        bool_tokenizer.tokenize([True, False, True, False, 5])
+    ) == [1, 0, 1, 0, 4]
 
-bool_tokenizer = BoolTokenizer(version=None)
-assert bool_tokenizer.detokenize(
-    bool_tokenizer.tokenize([True, False, True, False, 5])
-) == [1, 0, 1, 0, 4]
-
-class_tokenizer = ClassTokenizer(vocab_list=["hi", "bye"], unk_token="Other", version=None)
-assert class_tokenizer.detokenize(class_tokenizer.tokenize(["hi", "bye", "hello"])) == ["hi", "bye", "Other"]
+    class_tokenizer = ClassTokenizer(vocab_list=["hi", "bye"], unk_token="Other", version=None)
+    assert class_tokenizer.detokenize(class_tokenizer.tokenize(["hi", "bye", "hello"])) == ["hi", "bye", "Other"]
 

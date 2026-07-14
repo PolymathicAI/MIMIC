@@ -920,12 +920,24 @@ class MIMIC(nn.Module):
                 raise ValueError(f"Cannot determine generation length for sample {i}. Please provide target_lens.")
         return target_lens
 
-    def embed(self, train_mode: bool = False, sep_encodings: bool = True) -> dict:
+    def embed(
+        self,
+        train_mode: bool = False,
+        return_full: bool = True,
+        return_register: bool = False,
+        return_modality: bool = False,
+    ) -> dict:
         """Encode the staged input into encoder representations.
 
-        With `sep_encodings` (default) returns a per-sample dict splitting the encoder
-        output by modality group (+ a 'full' key); otherwise returns a batched dict with
-        'full'/'mask'/'mod_ids' (and 'register' when register tokens are present).
+        Returns a dict containing only the requested keys:
+
+        - ``return_full`` (default True): ``'full'`` -- the batched encoder output
+          ``[B, N, D]`` -- plus ``'mod_ids'`` ``[B, N]``, the per-position modality-group
+          id for each token in ``'full'`` (``-1`` for padding).
+        - ``return_register``: ``'register'`` -- the leading register-token slice
+          ``[B, num_register_tokens, D]`` (omitted if the model has no register tokens).
+        - ``return_modality``: ``'modality'`` -- a per-sample dict
+          ``{sample_index: {group_name: tokens}}`` splitting ``'full'`` by modality group.
         """
         assert self.tok_input, "No input provided. Please provide an input via input() first."
 
@@ -936,17 +948,21 @@ class MIMIC(nn.Module):
                 mod_dict, return_encoder_output=True, return_logits=False, return_loss=False
             )['encoder_output']
 
-        if sep_encodings:
-            encodings = {}
+        encodings = {}
+        if return_full:
+            encodings['full'] = output['x']
+            encodings['mod_ids'] = output['encoder_mod_mask']
+        if return_register and self.num_register_tokens > 0:
+            encodings['register'] = output['x'][:, :self.num_register_tokens]
+        if return_modality:
+            per_sample = {}
             for i in range(len(output['x'])):
                 all_mod_idx = set(output['encoder_mod_mask'][i].tolist()) - {-1}
-                sample_enc = {self.group_names[idx]: output['x'][i][output['encoder_mod_mask'][i] == idx] for idx in all_mod_idx}
-                sample_enc['full'] = output['x'][i]
-                encodings[i] = sample_enc
-        else:
-            encodings = {'full': output['x'], 'mask': output['encoder_mod_mask'], 'mod_ids': output['encoder_mod_mask']}
-            if self.num_register_tokens > 0:
-                encodings['register'] = output['x'][:, :self.num_register_tokens]
+                per_sample[i] = {
+                    self.group_names[idx]: output['x'][i][output['encoder_mod_mask'][i] == idx]
+                    for idx in all_mod_idx
+                }
+            encodings['modality'] = per_sample
 
         return encodings
 
@@ -983,7 +999,7 @@ class MIMIC(nn.Module):
         seed: int = 42,
         verbose: bool = True,
         detokenize_mode: Literal["argmax", "weighted_mean"] = "argmax",
-        detokenize_structure: bool = False,
+        detokenize_structure: bool = True,
         return_tokens: bool = False,
         return_logits: bool = False,
         return_probs: bool = False,
@@ -999,24 +1015,24 @@ class MIMIC(nn.Module):
           - By default, returns ``{target_name: preds}`` where ``preds`` is the
             detokenized generation for that modality (a string for sequence/text
             modalities, a float array for scalar tracks like sasa/phylop, a list
-            of labels for categorical tracks, or ``None`` for ``prot_struct`` unless
-            ``detokenize_structure=True``).
+            of labels for categorical tracks, or a biotite ``AtomArray`` for
+            ``prot_struct`` when ``detokenize_structure=True``).
           - If any of ``return_tokens/return_logits/return_probs/
             return_sampling_probs`` is True, every target's value becomes a dict
             ``{"preds": ..., <requested extras>}`` (as numpy arrays).
 
-        ``detokenize_structure=True`` decodes ``prot_struct`` tokens to a backbone
-        structure (a biotite ``AtomArray``) via the ESM3 VQVAE decoder. This is
-        expensive (loads the decoder + downloads its weights on first use) and needs
-        the ``[structure]`` extra, so it is off by default and ``prot_struct`` preds
-        are ``None``.
+        ``detokenize_structure`` (default True) decodes ``prot_struct`` tokens to a
+        backbone structure (a biotite ``AtomArray``) via the ESM3 VQVAE decoder. The
+        decoder + its weights load/download on first use; pass
+        ``detokenize_structure=False`` to skip this, leaving ``prot_struct`` preds
+        as ``None`` (use ``return_tokens=True`` to still get the raw tokens).
 
         Pathway gating: cross-track generations MIMIC was not trained for (e.g.
         protein input -> is_coding) are refused. ``on_unsupported`` controls the
         response -- "error" (default: raise), "warn" (run with a loud warning), or
         "allow" (run silently). The package-wide default is `DEFAULT_ON_UNSUPPORTED`.
-        Within-track, text-association, and RNA<->protein-sequence pathways are
-        always allowed (see modality_info.PATHWAY_ALLOWLIST to enable more).
+        Within-track and text-association pathways are allowed (see
+        modality_info.PATHWAY_ALLOWLIST to enable additional cross-track pathways).
         """
         from .modality_info import unsupported_pathways, DEFAULT_ON_UNSUPPORTED
 
@@ -1073,8 +1089,8 @@ class MIMIC(nn.Module):
         for mod, output_dict in output.items():
             tokens_np = output_dict["tokens"].cpu().numpy()
             tok = self.tokenizers[mod]
-            # Structure detok (ESM3 VQVAE decode -> coordinates) is expensive and needs
-            # the [structure] extra, so it is opt-in via detokenize_structure.
+            # Structure detok (ESM3 VQVAE decode -> coordinates) loads/downloads the
+            # decoder on first use; on by default, disable via detokenize_structure=False.
             if mod == "tok_prot_struct":
                 preds = tok.detokenize(tokens_np.tolist(), as_biotite=True) if detokenize_structure else None
             elif detokenize_mode == "weighted_mean":

@@ -1,8 +1,8 @@
 # Modality registry for the public MIMIC package.
 # Light tokenizers (pure-python / npy-npz bins) are imported eagerly. Text
 # (BioBERT) and structure (ESM3) tokenizers are wrapped lazily via _LazyTokenizer
-# so the model can be built and run without `transformers` / `biotite` / ESM3
-# weights; those load on first tokenize/detokenize (optional extras).
+# so building the model does not import `transformers` / `biotite` or download
+# ESM3 weights; those load on first tokenize/detokenize.
 
 import hashlib
 from functools import partial
@@ -51,16 +51,16 @@ def generate_uint15_hash(seed_str: str) -> int:
 
 
 class _LazyTokenizer:
-    """Placeholder tokenizer for optional heavy modalities (text, structure).
+    """Placeholder tokenizer for heavy modalities (text, structure).
 
     Exposes vocab size and special-token ids as constants so the model can be
-    constructed without importing the heavy dependency. The real tokenizer is
-    imported/constructed on first tokenize/detokenize (or other attribute access),
-    raising a helpful error if the optional extra is not installed.
+    constructed without importing the heavy dependency (transformers / biotite /
+    ESM3). The real tokenizer is imported/constructed on first tokenize/detokenize
+    (or other attribute access).
     """
 
     def __init__(self, loader, *, vocab_size, pad_token_id, mask_token_id,
-                 unk_token_id, has_weighted_mean=False, extra=None):
+                 unk_token_id, has_weighted_mean=False):
         self._loader = loader
         self._real = None
         self.vocab_size = vocab_size
@@ -68,19 +68,11 @@ class _LazyTokenizer:
         self.mask_token_id = mask_token_id
         self.unk_token_id = unk_token_id
         self.has_weighted_mean = has_weighted_mean
-        self._extra = extra
 
     @property
     def real(self):
         if self._real is None:
-            try:
-                self._real = self._loader()
-            except ImportError as e:
-                hint = (f" Install the optional extra: pip install 'mimic[{self._extra}]'."
-                        if self._extra else "")
-                raise ImportError(
-                    f"This modality's tokenizer requires extra dependencies.{hint}"
-                ) from e
+            self._real = self._loader()
         return self._real
 
     def tokenize(self, *args, **kwargs):
@@ -110,13 +102,13 @@ def _load_struct_tokenizer():
 text_tokenizer = _LazyTokenizer(
     _load_text_tokenizer,
     vocab_size=28999, pad_token_id=28996, mask_token_id=28997, unk_token_id=28998,
-    has_weighted_mean=False, extra="text",
+    has_weighted_mean=False,
 )
 # Structure (ESM3 VQVAE): vocab 4104 = 4096 codebook + 8 specials.
 esm3_tokenizer = _LazyTokenizer(
     _load_struct_tokenizer,
     vocab_size=4104, pad_token_id=4101, mask_token_id=4102, unk_token_id=4103,
-    has_weighted_mean=False, extra="structure",
+    has_weighted_mean=False,
 )
 
 def partial_init_embeddings(modality_info):
@@ -506,14 +498,13 @@ for id, name in group_names.items():
 # staged input i reaches it via one of:
 #   * within-track  -- i and T are in the same molecular track (protein / nucleic);
 #   * text association -- a text modality paired with a modality it was trained
-#     with (TEXT_ASSOCIATIONS);
-#   * an explicit cross-track pathway in PATHWAY_ALLOWLIST (e.g. RNA<->protein
-#     sequence translation).
+#     with (TEXT_ASSOCIATIONS).
 #
+# Cross-track pathways are NOT enabled by default (PATHWAY_ALLOWLIST is empty).
 # Tracks come from the two summation groups (protein=0, nucleic=1) plus the
 # singleton assignments in _SINGLETON_TRACK; "text" modalities are the free-text
-# channels. Selectively enable more cross-track pathways by adding pairs to
-# PATHWAY_ALLOWLIST.
+# channels. Selectively enable a cross-track pathway by adding an (input, target)
+# pair to PATHWAY_ALLOWLIST.
 # ---------------------------------------------------------------------------
 
 # Package-wide default when generate() is called without an explicit
@@ -549,11 +540,9 @@ TEXT_ASSOCIATIONS = {
 }
 
 # CURATED HOOK: explicit cross-track (input -> target) pathways allowed beyond
-# within-track + text. Add pairs here to selectively enable more pathways.
-PATHWAY_ALLOWLIST = {
-    ("tok_aa_seq", "tok_rna_seq"),   # protein sequence -> RNA sequence
-    ("tok_rna_seq", "tok_aa_seq"),   # RNA sequence -> protein sequence
-}
+# within-track + text. Add (input, target) pairs here to selectively enable more
+# pathways. Empty by default: the supported gate is within-track + text-association.
+PATHWAY_ALLOWLIST = set()
 
 
 def _pair_supported(i, t):

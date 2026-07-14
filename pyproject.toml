@@ -3,8 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-# Distribution name on PyPI is `mimic-cd` (central dogma); `mimic` was taken.
-# The import package is still `mimic` (i.e. `from mimic import load_pretrained`).
+# Build/distribution name is `mimic-cd` (central dogma); the import package is
+# `mimic` (i.e. `from mimic import load_pretrained`). Install from GitHub:
+#   pip install git+https://github.com/PolymathicAI/MIMIC.git
 name = "mimic-cd"
 version = "0.1.0"
 description = "MIMIC: a generative multimodal foundation model for biomolecules (inference, embedding, and generation)."
@@ -21,8 +22,9 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Bio-Informatics",
 ]
 
-# Core runtime: kept intentionally minimal. Everything below is small next to
-# torch/x-transformers; heavier, modality-specific deps live in the extras.
+# Core runtime. Includes the deps for every modality so the full model works
+# out of the box: transformers (free-text / semantic-context BioBERT tokenizer)
+# and biotite (protein-structure I/O for the ESM3 VQVAE tokenizer).
 dependencies = [
     "torch>=2.2",
     "x-transformers>=2.0",
@@ -32,20 +34,15 @@ dependencies = [
     "huggingface-hub>=0.24",
     "loguru>=0.7",
     "tqdm>=4.65",
-]
-
-[project.optional-dependencies]
-# Protein-structure modality (ESM3 VQVAE tokenizer): biotite for structure I/O.
-structure = [
+    "transformers>=4.40",
     "biotite>=1.0",
     "typing_extensions>=4.0",
 ]
-# Free-text / semantic-context modality: BioBERT tokenizer + embeddings.
-text = [
-    "transformers>=4.40",
-]
+
+[project.optional-dependencies]
+# `all` is kept as an alias of the core install for backward compatibility.
 all = [
-    "mimic-cd[structure,text]",
+    "mimic-cd",
 ]
 dev = [
     "pytest>=7",
