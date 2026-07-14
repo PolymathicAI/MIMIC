@@ -3,10 +3,10 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-# Build/distribution name is `mimic-cd` (central dogma); the import package is
-# `mimic` (i.e. `from mimic import load_pretrained`). Install from GitHub:
+# Import and distribution name is `mimic` (i.e. `from mimic import load_pretrained`).
+# Install from GitHub:
 #   pip install git+https://github.com/PolymathicAI/MIMIC.git
-name = "mimic-cd"
+name = "mimic"
 version = "0.1.0"
 description = "MIMIC: a generative multimodal foundation model for biomolecules (inference, embedding, and generation)."
 readme = "README.md"
@@ -42,7 +42,7 @@ dependencies = [
 [project.optional-dependencies]
 # `all` is kept as an alias of the core install for backward compatibility.
 all = [
-    "mimic-cd",
+    "mimic",
 ]
 dev = [
     "pytest>=7",
