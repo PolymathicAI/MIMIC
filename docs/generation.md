@@ -128,7 +128,7 @@ them to condition on cell-state / assay metadata — the `Conditioning context`
 column shows a real example for each (see `TEXT_ASSOCIATIONS` in
 [`src/mimic/modality_info.py`](../src/mimic/modality_info.py)).
 
-| Modality | Track | Description | Example | Conditioning context (`tok_context`) |
+| Modality | Track | Description | Example | Conditioning context (`context`) |
 |---|---|---|---|---|
 | `rna_seq` | nucleic | RNA/DNA nucleotide sequence (unspliced) — the core nucleic input | `"UUUGGAAACUUU…"` | — |
 | `cds_junctions` | nucleic | Coding-sequence (CDS) exon–exon junction positions, per position | `"…0001000…"` | — |
@@ -138,7 +138,7 @@ column shows a real example for each (see `TEXT_ASSOCIATIONS` in
 | `feature_type` | nucleic | Genomic feature-type label | `['protein_coding']` | — |
 | `phylop_human` | nucleic | phyloP evolutionary-conservation score (human), per position | `[-0.66, 1.04, …]` | — |
 | `phylop_mouse` | nucleic | phyloP evolutionary-conservation score (mouse), per position | `[-0.26, -0.92, …]` | — |
-| `atac` | nucleic | ATAC-seq chromatin-accessibility signal, per position (`N` = unmeasured). **Cell-state-conditional** | `"…NNNN…"` | `"human, GM23338 lymphoblastoid cell line (EBV-transformed B lymphocyte)"` |
+| `atac` | nucleic | ATAC-seq chromatin-accessibility signal, per position (`N` = unmeasured). **Cell-state-conditional** | `"…N888887…"` | `"human, GM23338 lymphoblastoid cell line (EBV-transformed B lymphocyte)"` |
 | `cage` | nucleic | CAGE transcription-start signal, per position. **Cell-state-conditional** | `[0.001, 0.001, …]` | `"skeletal muscle, human, fetal"` |
 | `rasp2` | nucleic | RASP2 (icSHAPE-style) RNA-structure reactivity, per position (`nan` where unmeasured). **Condition-conditional** | `[nan, 0.42, …]` | `"technology: icSHAPE, reagent: NAI-N3, in vivo, cell line: K562, human"` |
 | `aa_seq` | protein | Amino-acid (protein) sequence — the core protein input | `"MTPPERLFLP…"` | — |
