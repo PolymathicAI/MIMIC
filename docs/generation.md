@@ -124,35 +124,31 @@ categorical context). Pass any modality to `model.input()` under its short name
 per-checkpoint list is `model.modality_info`. The `Track` column drives the
 pathway gating described above.
 
-| Modality | `tok_` key | Track | Description |
-|---|---|---|---|
-| `rna_seq` | `tok_rna_seq` | nucleic | RNA/DNA nucleotide sequence (unspliced) — the core nucleic input |
-| `cds` | `tok_cds` | nucleic | Coding-sequence (CDS) region annotation, per position |
-| `cds_junctions` | `tok_cds_junctions` | nucleic | CDS exon–exon junction positions |
-| `utr` | `tok_utr` | nucleic | 5′/3′ UTR region annotation, per position |
-| `splice_regions` | `tok_splice_regions` | nucleic | Splice-region annotation, per position |
-| `splice_junctions` | `tok_splice_junctions` | nucleic | Splice-junction positions |
-| `splice_jctns_5cls` | `tok_splice_jctns_5cls` | nucleic | Per-position 5-class splice-site type (donor / acceptor / …) |
-| `is_coding` | `tok_is_coding` | nucleic | Per-position coding vs. non-coding flag |
-| `feature_type` | `tok_feature_type` | nucleic | Genomic feature-type label, per position |
-| `phylop_human` | `tok_phylop_human` | nucleic | phyloP evolutionary-conservation score (human), per position |
-| `phylop_mouse` | `tok_phylop_mouse` | nucleic | phyloP evolutionary-conservation score (mouse), per position |
-| `atac` | `tok_atac` | nucleic | ATAC-seq chromatin-accessibility signal, per position |
-| `cage` | `tok_cage` | nucleic | CAGE transcription-start signal, per position |
-| `rasp2` | `tok_rasp2` | nucleic | RASP2 (icSHAPE-style) RNA-structure reactivity, per position |
-| `aa_seq` | `tok_aa_seq` | protein | Amino-acid (protein) sequence — the core protein input |
-| `rna_codons` | `tok_rna_codons` | protein | Codon sequence aligned to the protein (nucleotide content, protein-aligned track) |
-| `prot_struct` | `tok_prot_struct` | protein | Protein 3D structure as ESM3 VQVAE tokens (decode to a backbone via `detokenize_structure`) |
-| `dssp` | `tok_dssp` | protein | DSSP secondary-structure class, per residue |
-| `sasa` | `tok_sasa` | protein | Solvent-accessible surface area, per residue |
-| `prot_abund` | `tok_prot_abund` | protein | Protein abundance (PaxDb ppm), scalar |
-| `funcprot_caption` | `tok_funcprot_caption` | protein | Free-text protein functional caption |
-| `masif_charge` | `tok_masif_charge` | protein | MaSIF surface Poisson–Boltzmann charge, per vertex |
-| `masif_hbond` | `tok_masif_hbond` | protein | MaSIF surface hydrogen-bond potential, per vertex |
-| `masif_hydrophobicity` | `tok_masif_hydrophobicity` | protein | MaSIF surface hydrophobicity, per vertex |
-| `masif_si_index` | `tok_masif_si_index` | protein | MaSIF surface shape-index, per vertex |
-| `masif_n_vertices` | `tok_masif_n_vertices` | protein | MaSIF surface vertex count |
-| `context` | `tok_context` | text | Free-text semantic context (e.g. cell-state) for conditioning |
-| `corpus` | `tok_corpus` | text | Free-text corpus / source label |
-| `gene_family_txt` | `tok_gene_family_txt` | text | Free-text gene-family description |
-| `kingdom` | `tok_kingdom` | text | Taxonomic kingdom label |
+| Modality | `tok_` key | Track | Description | Example |
+|---|---|---|---|---|
+| `rna_seq` | `tok_rna_seq` | nucleic | RNA/DNA nucleotide sequence (unspliced) — the core nucleic input | `"UUUGGAAACUUU…"` |
+| `cds_junctions` | `tok_cds_junctions` | nucleic | Coding-sequence (CDS) exon–exon junction positions, per position | `"…0001000…"` |
+| `splice_regions` | `tok_splice_regions` | nucleic | Splice-region (exon) annotation, per position | `"…0011100…"` |
+| `splice_jctns_5cls` | `tok_splice_jctns_5cls` | nucleic | Per-position 5-class splice-site type: `0`=none, `1`=acceptor, `2`=donor, `3`=TSS (first-exon start), `4`=TES (last-exon end) | `"…00020…0100…"` |
+| `is_coding` | `tok_is_coding` | nucleic | Coding vs. non-coding flag | `[1]` |
+| `feature_type` | `tok_feature_type` | nucleic | Genomic feature-type label | `['protein_coding']` |
+| `phylop_human` | `tok_phylop_human` | nucleic | phyloP evolutionary-conservation score (human), per position | `[-0.66, 1.04, …]` |
+| `phylop_mouse` | `tok_phylop_mouse` | nucleic | phyloP evolutionary-conservation score (mouse), per position | `[-0.26, -0.92, …]` |
+| `atac` | `tok_atac` | nucleic | ATAC-seq chromatin-accessibility signal, per position (`N` = unmeasured) | `"…NNNN…"` |
+| `cage` | `tok_cage` | nucleic | CAGE transcription-start signal, per position | `[0.001, 0.001, …]` |
+| `rasp2` | `tok_rasp2` | nucleic | RASP2 (icSHAPE-style) RNA-structure reactivity, per position (`nan` where unmeasured) | `[nan, 0.42, …]` |
+| `aa_seq` | `tok_aa_seq` | protein | Amino-acid (protein) sequence — the core protein input | `"MTPPERLFLP…"` |
+| `rna_codons` | `tok_rna_codons` | protein | Codon sequence aligned to the protein (nucleotide content, protein-aligned track) | `['AUG', 'ACA', 'CCA', …]` |
+| `prot_struct` | `tok_prot_struct` | protein | Protein 3D structure as ESM3 VQVAE tokens (decode to a backbone via `detokenize_structure`) | `[754, 1510, 49, …]` |
+| `dssp` | `tok_dssp` | protein | DSSP secondary-structure class, per residue | `"CCXX…HHH…"` |
+| `sasa` | `tok_sasa` | protein | Solvent-accessible surface area, per residue | `[225.1, 128.6, …]` |
+| `prot_abund` | `tok_prot_abund` | protein | Protein abundance (PaxDb ppm), scalar | `[385.6]` |
+| `funcprot_caption` | `tok_funcprot_caption` | protein | Free-text protein functional caption | `"Catalyzes the hydrolysis of…"` |
+| `masif_charge` | `tok_masif_charge` | protein | MaSIF surface Poisson–Boltzmann charge, per vertex | `[6.9, -3.3, …]` |
+| `masif_hbond` | `tok_masif_hbond` | protein | MaSIF surface hydrogen-bond potential, per vertex | `[-1.77, -1.64, …]` |
+| `masif_hydrophobicity` | `tok_masif_hydrophobicity` | protein | MaSIF surface hydrophobicity, per vertex | `[0.32, -0.31, …]` |
+| `masif_si_index` | `tok_masif_si_index` | protein | MaSIF surface shape-index, per vertex | `[0.34, 0.22, …]` |
+| `masif_n_vertices` | `tok_masif_n_vertices` | protein | MaSIF surface vertex count, per patch | `[65.0, 42.0, …]` |
+| `context` | `tok_context` | text | Free-text semantic context (e.g. cell-state) for conditioning | `"HepG2 cell line"` |
+| `corpus` | `tok_corpus` | text | Free-text corpus / source label | `"UniProtKB/Swiss-Prot"` |
+| `gene_family_txt` | `tok_gene_family_txt` | text | Free-text gene-family description | `"Zinc-finger C2H2 family"` |
