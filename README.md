@@ -1,10 +1,14 @@
+<p align="center">
+  <img src="assets/MIMIC_logo.png" alt="MIMIC" width="320">
+</p>
+
 # MIMIC: A Generative Multimodal Foundation Model for Biomolecules
 
 [![Paper](https://img.shields.io/badge/arXiv-2604.24506-b31b1b.svg)](https://arxiv.org/abs/2604.24506)
 [![Blog](https://img.shields.io/badge/Blog-MIMIC%20Post-0ea5e9.svg)](https://polymathic-ai.org/blog/mimic/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Model](https://img.shields.io/badge/Model-Release%20in%20Progress-orange.svg)](#open-source-status)
-[![Dataset](https://img.shields.io/badge/LORE-Release%20in%20Progress-orange.svg)](#open-source-status)
+[![Model](https://img.shields.io/badge/%F0%9F%A4%97%20Model-polymathic--ai%2FMIMIC-ffce1c.svg)](https://huggingface.co/polymathic-ai/MIMIC)
+[![Dataset](https://img.shields.io/badge/%F0%9F%A4%97%20Data-LORE--examples-ffce1c.svg)](https://huggingface.co/datasets/polymathic-ai/LORE-examples)
 
 MIMIC is a generative multimodal foundation model that jointly models DNA, RNA, proteins, and cellular context in one framework.
 
@@ -27,9 +31,69 @@ Most biological AI systems treat sequence, structure, and function as separate t
 
 ![MIMIC any-to-any flow poster](assets/AnyToAnyFlow-poster.jpg)
 
+## Installation
+
+MIMIC requires Python 3.10+ and installs cleanly with either `pip` or [`uv`](https://docs.astral.sh/uv/).
+
+```bash
+pip install git+https://github.com/PolymathicAI/MIMIC.git
+```
+
+This installs everything needed to run the full model across all modalities,
+including `transformers` (free-text / semantic-context BioBERT tokenizer) and
+`biotite` (protein-structure I/O). ESM3 VQVAE weights for structure detokenization
+download on first use.
+
+The build/distribution name is **`mimic-cd`** (the name `mimic` was taken), but the
+import package is `mimic` — i.e. `from mimic import load_pretrained`.
+
+Pretrained weights (`config.json` + `model.safetensors`) are hosted separately on the
+[Hugging Face Hub](https://huggingface.co/polymathic-ai/MIMIC) and downloaded on demand
+by `load_pretrained` — they are **not** bundled in the pip package.
+
+## Quickstart
+
+```python
+from mimic import load_pretrained
+
+# Downloads MIMIC 1.0 weights from the Hub on first call (cached thereafter);
+# device="auto" uses CUDA if available, else CPU.
+model = load_pretrained(version="1.0")
+
+# Real matched examples from LORE (raw view = modality name -> raw value).
+from datasets import load_dataset
+ex = load_dataset("polymathic-ai/LORE-examples", split="train")   # default config = raw
+prot = next(r for r in ex if r["kind"] == "protein")              # has aa_seq + sasa
+rna  = next(r for r in ex if r["kind"] == "rna")                  # has rna_seq + splice_jctns_5cls
+
+# --- Embedding: encode a real transcript into joint representations ---
+model.input([{"rna_seq": rna["rna_seq"]}])
+reps = model.embed()                                # {"full": [B, N, D], "mod_ids": [B, N] per-token group ids}
+# opt into more: model.embed(return_register=True, return_modality=True)
+
+# --- Generation demo 1: protein sequence -> per-residue solvent accessibility ---
+model.input([{"aa_seq": prot["aa_seq"]}])
+out = model.generate("sasa")                        # default strategy = Ensemble
+print(out["sasa"])                                  # per-residue SASA (float array)
+
+# --- Generation demo 2: RNA sequence -> per-position splice-site classes ---
+model.input([{"rna_seq": rna["rna_seq"]}])
+out = model.generate("splice_jctns_5cls")           # RNA -> per-position splice sites
+print(out["splice_jctns_5cls"])                     # one 5-class site label per position
+
+# generate() returns the detokenized prediction by default; pass return_tokens /
+# return_logits / return_probs / return_sampling_probs to also get the raw arrays
+# (each value then becomes a dict with "preds" plus the requested extras).
+```
+
+`generate` also accepts `strategy="one_shot"` or `"autoregressive"` (or a
+`mimic.strategies` instance), and multiple targets at once. See
+[`docs/generation.md`](docs/generation.md) for the full output format and pathway
+gating, and [`src/mimic`](src/mimic) for the rest of the API.
+
 ## Architecture at a Glance
 
-- ~1B parameter encoder-decoder transformer
+- ~1.25B parameter encoder-decoder transformer
 - Split-track multimodal representation (nucleic acid, protein, semantic context, etc.)
 - Localized positional encoding within each track
 - Register-token compression for global molecular context
@@ -57,7 +121,9 @@ Scale highlights:
 
 ## Open Source Status
 
-MIMIC model code/weights and LORE release assets are in preparation for public release.
+- **Code / package:** this repository (MIT) — `pip install git+https://github.com/PolymathicAI/MIMIC.git` (imports as `mimic`).
+- **Weights:** [`polymathic-ai/MIMIC`](https://huggingface.co/polymathic-ai/MIMIC) on the Hugging Face Hub.
+- **Example data:** [`polymathic-ai/LORE-examples`](https://huggingface.co/datasets/polymathic-ai/LORE-examples).
 
 ## Citation
 

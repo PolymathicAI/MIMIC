@@ -1,0 +1,1 @@
+from .struct_tokenizer import esm3_tokenizer

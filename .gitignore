@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+
+# Build artifacts
+build/
+dist/
+*.whl
+
+# Model weights / release artifacts (hosted on the Hugging Face Hub, not git)
+mimic_release/
+*.safetensors
+*.pth
+
+# Virtual envs / tooling
+.venv/
+venv/
+.uv/
+.ruff_cache/
+.pytest_cache/
