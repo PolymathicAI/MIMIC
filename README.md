@@ -113,6 +113,8 @@ Scale highlights:
 
 ![LORE dataset poster](assets/DatasetTable-poster.jpg)
 
+A small, ready-to-run sample is released as [`polymathic-ai/LORE-examples`](https://huggingface.co/datasets/polymathic-ai/LORE-examples) — matched multimodal rows (raw + tokenized) for quickstart, embedding, and generation, with a full per-modality reference table. See the [dataset card](https://huggingface.co/datasets/polymathic-ai/LORE-examples) for details.
+
 ## Links
 
 - **Paper:** [arXiv:2604.24506](https://arxiv.org/abs/2604.24506)
