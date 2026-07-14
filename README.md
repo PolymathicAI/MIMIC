@@ -105,7 +105,6 @@ gating, and [`src/mimic`](src/mimic) for the rest of the API.
 
 MIMIC's learned representations transfer to RNA and protein property prediction, where a single multimodal model is competitive with or ahead of strong single-modality foundation models:
 
-- **Splicing:** state-of-the-art splicing prediction.
 - **Protein — [PFMBench](https://arxiv.org/abs/2604.24506)** (function, structure, interaction, and developability): MIMIC matches or exceeds protein-only baselines including **ESM3, ESM-C, ProTrek, and SaProt**, leading on at least **7 of 11** tasks — with especially strong protein–ligand binding (BindingDB, PDBbind) and the best results across all developability tasks.
 - **mRNA — mRNABench** (function, localization, transcriptional regulation, and variant-effect prediction): MIMIC outperforms **Evo 2** and **Orthrus** on **4 of 7** tasks and a dilated-ResNet baseline on **6 of 7**, leading overall.
 
