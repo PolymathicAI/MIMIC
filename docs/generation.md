@@ -154,5 +154,5 @@ column shows a real example for each (see `TEXT_ASSOCIATIONS` in
 | `masif_si_index` | protein | MaSIF surface shape-index, per vertex | `[0.34, 0.22, …]` | — |
 | `masif_n_vertices` | protein | MaSIF surface vertex count, per patch | `[65.0, 42.0, …]` | — |
 | `context` | text | Free-text semantic context (e.g. cell-state / assay) — the conditioning channel itself | `"HepG2 cell line"` | — |
-| `corpus` | text | Free-text corpus / source label | `"UniProtKB/Swiss-Prot"` | — |
-| `gene_family_txt` | text | Free-text gene-family description | `"Zinc-finger C2H2 family"` | — |
+| `corpus` | text | Free-text biomedical literature (PubMed abstracts / articles), used as a language corpus | `"…regulates cell-cycle arrest and apoptosis…"` | — |
+| `gene_family_txt` | text | Organism taxonomic lineage as free text (broad clade → phylum → class → order → family → genus → species) | `"metazoa chordata mammalia primates hominidae homo homo sapiens"` | — |
