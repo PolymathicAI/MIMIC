@@ -251,7 +251,6 @@ MODALITY_INFO = {
         "summation_group": 0,
         "target_cont_ratio": 0.05,
     },
-    # Prot struct tokenzier not yet merged
     "tok_prot_struct": {
         "type": "chain_token",
         "tokenizer": esm3_tokenizer,

@@ -18,7 +18,7 @@ from pathlib import Path
 from huggingface_hub import hf_hub_download
 
 from loguru import logger
-from .struct_utils import struct_to_numpy, numpy_to_struct
+from .struct_utils import struct_to_numpy, numpy_to_struct, to_atom_array
 
 from .layers.affine3d import Affine3D
 from .layers.constants import atom_order, atom_types, atom_type_num
@@ -106,12 +106,10 @@ class ESM3StructureTokenizer(BaseTokenizer):
         decoder.load_state_dict(state_dict)
         return decoder
 
-    def _biotite_to_atom37(self, atom_array: bs.AtomArray, chain_id: str = "A") -> np.array:
-        atom_array = atom_array[
-            bs.filter_amino_acids(atom_array)
-            & ~atom_array.hetero
-            & (atom_array.chain_id == chain_id)
-        ]
+    def _biotite_to_atom37(self, atom_array: bs.AtomArray) -> np.array:
+        # Chain selection and hetero/hydrogen filtering happen upstream in
+        # struct_utils.clean_structure; this only reshapes into the atom37 layout.
+        atom_array = atom_array[bs.filter_amino_acids(atom_array) & ~atom_array.hetero]
 
         num_res = bs.get_residue_count(atom_array)
 
@@ -123,9 +121,6 @@ class ESM3StructureTokenizer(BaseTokenizer):
         residue_index = np.full([num_res], -1, dtype=np.int64)
 
         for i, res in enumerate(bs.residue_iter(atom_array)):
-            chain = atom_array[atom_array.chain_id == chain_id]
-            assert isinstance(chain, bs.AtomArray)
-
             res_index = res[0].res_id
             residue_index[i] = res_index
 
@@ -210,12 +205,25 @@ class ESM3StructureTokenizer(BaseTokenizer):
                     atoms.append(atom)
         return bs.array(atoms)
 
-    def tokenize(self, structure: np.array) -> list[int]:
+    def tokenize(self, structure, chain: str | None = "A") -> list[int]:
+        """Encode a protein structure as ESM3 VQVAE token ids, one per residue.
+
+        ``structure`` may be any of:
+
+        * a path to a structure file -- PDB, mmCIF, BinaryCIF, anything biotite reads
+        * a biotite ``AtomArray`` (or ``AtomArrayStack``; its first model is used)
+        * the compact ``(n_atoms, 7)`` array from ``struct_to_numpy``
+
+        Files and ``AtomArray``\\ s are cleaned first (waters, ligands and hydrogens
+        dropped, chain ``chain`` selected); the compact array is already clean by
+        construction and is used as given. Only backbone geometry is read, so residue
+        identity and side chains do not affect the tokens.
+        """
         if not self.initialized:
             self.init()
 
         device = next(self.encoder.parameters()).device
-        bs_structure = numpy_to_struct(structure)
+        bs_structure = to_atom_array(structure, chain=chain)
         coords, residue_index = self._biotite_to_atom37(bs_structure)
 
         with torch.no_grad():
@@ -304,5 +312,5 @@ class ESM3StructureTokenizer(BaseTokenizer):
 
         return rmsd
 
-# %%
+
 esm3_tokenizer = ESM3StructureTokenizer()
