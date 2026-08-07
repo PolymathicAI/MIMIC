@@ -41,8 +41,8 @@ pip install git+https://github.com/PolymathicAI/MIMIC.git
 
 This installs everything needed to run the full model across all modalities,
 including `transformers` (free-text / semantic-context BioBERT tokenizer) and
-`biotite` (protein-structure I/O). ESM3 VQVAE weights for structure detokenization
-download on first use.
+`biotite` (protein-structure I/O). ESM3 VQVAE weights for encoding and decoding
+protein structures download on first use.
 
 The package imports as `mimic` — i.e. `from mimic import load_pretrained`.
 
@@ -80,15 +80,22 @@ model.input([{"rna_seq": rna["rna_seq"]}])
 out = model.generate("splice_jctns_5cls")           # RNA -> per-position splice sites
 print(out["splice_jctns_5cls"])                     # one 5-class site label per position
 
+# --- Generation demo 3: a structure file -> its sequence (inverse folding) ---
+model.input([{"prot_struct": "1ubq.pdb"}])          # PDB / mmCIF path, or a biotite AtomArray
+print(model.generate("aa_seq"))                     # "MKIFVKTLTGKTITLEVEPSDT..."
+
 # generate() returns the detokenized prediction by default; pass return_tokens /
 # return_logits / return_probs / return_sampling_probs to also get the raw arrays
 # (each value then becomes a dict with "preds" plus the requested extras).
 ```
 
+Structure inputs are cleaned before encoding — waters, ligands and hydrogens dropped,
+chain A by default; use `mimic.load_structure(path, chain="B")` to pick another chain.
+
 `generate` also accepts `strategy="one_shot"` or `"autoregressive"` (or a
 `mimic.strategies` instance), and multiple targets at once. See
-[`docs/generation.md`](docs/generation.md) for the full output format and pathway
-gating, and [`src/mimic`](src/mimic) for the rest of the API.
+[`docs/generation.md`](docs/generation.md) for the full output format, structure input
+formats, and pathway gating, and [`src/mimic`](src/mimic) for the rest of the API.
 
 ## Architecture at a Glance
 

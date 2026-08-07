@@ -114,6 +114,57 @@ Everything else is cross-track and gated. The track map and allowlist live in th
 - `DEFAULT_ON_UNSUPPORTED` — package-wide default (`"error"`); set `"warn"`/`"allow"`
   for a looser install.
 
+## Protein structure as input
+
+Every other modality takes a string or a list of numbers, so `model.input` is obvious.
+Structures are the exception, and they accept four forms:
+
+```python
+model.input([{"prot_struct": "AF-P0DTC2-F1-model_v4.pdb"}])   # a path: PDB, mmCIF, BinaryCIF
+model.input([{"prot_struct": atom_array}])                     # a biotite AtomArray
+model.input([{"prot_struct": coords}])                         # the compact (n_atoms, 7) array
+model.input([{"tok_prot_struct": [754, 1510, 49]}])            # already-tokenized ids
+```
+
+A path is the easy one and needs nothing else:
+
+```python
+from mimic import load_pretrained
+
+model = load_pretrained(version="1.0")
+model.input([{"prot_struct": "1ubq.pdb"}])
+model.generate("aa_seq")     # -> "MKIFVKTLTGKTITLEVEPSDT…"  (inverse folding)
+```
+
+Files are cleaned before encoding: waters, ligands and other hetero atoms are dropped,
+as are hydrogens, and **chain A is selected by default**. For a different chain, load it
+yourself and pass the result:
+
+```python
+from mimic import load_structure
+
+model.input([{"prot_struct": load_structure("7xyz.cif", chain="B")}])
+```
+
+A chain that isn't in the file raises and tells you which chains are — it does not
+quietly encode nothing. Multi-model files (NMR ensembles) use model 1 unless you pass
+`model=`. Only backbone geometry reaches the encoder, so side chains, residue identity
+and B-factors do not affect the tokens.
+
+The other helpers, all importable from `mimic`:
+
+| helper | use |
+|---|---|
+| `load_structure(path, chain="A", model=1)` | read a structure file → cleaned biotite `AtomArray` |
+| `parse_structure_string(text, format="pdb")` | same, for text in memory (a fetched or predicted structure) |
+| `pdb_to_numpy(path, chain="A")` | read straight to the compact `(n_atoms, 7)` array — the form to **store** alongside other modalities |
+| `clean_structure(atom_array, chain="A")` | the filtering step on its own |
+| `struct_to_numpy` / `numpy_to_struct` | convert between an `AtomArray` and the compact array |
+
+The compact array's columns are `[x, y, z, res_id, res_idx, atom_idx, b_factor]`. It
+holds one chain, and it is what `detokenize` returns by default, so it round-trips with
+`tokenize`.
+
 ## Modalities
 
 MIMIC represents each molecule as a set of co-observed modalities grouped into
@@ -143,7 +194,7 @@ column shows a real example for each (see `TEXT_ASSOCIATIONS` in
 | `rasp2` | nucleic | RASP2 (icSHAPE-style) RNA-structure reactivity, per position (`nan` where unmeasured). **Condition-conditional** | `[nan, 0.42, …]` | `"technology: icSHAPE, reagent: NAI-N3, in vivo, cell line: K562, human"` |
 | `aa_seq` | protein | Amino-acid (protein) sequence — the core protein input | `"MTPPERLFLP…"` | — |
 | `rna_codons` | protein | Codon sequence aligned to the protein (nucleotide content, protein-aligned track) | `['AUG', 'ACA', 'CCA', …]` | — |
-| `prot_struct` | protein | Protein 3D structure as ESM3 VQVAE tokens (decode to a backbone via `detokenize_structure`) | `[754, 1510, 49, …]` | — |
+| `prot_struct` | protein | Protein 3D structure, encoded as ESM3 VQVAE tokens. Input a PDB/mmCIF path, an `AtomArray`, or the compact array ([above](#protein-structure-as-input)); output decodes to a backbone via `detokenize_structure` | `"1ubq.pdb"` | — |
 | `dssp` | protein | DSSP secondary-structure class, per residue | `"CCXX…HHH…"` | — |
 | `sasa` | protein | Solvent-accessible surface area, per residue | `[225.1, 128.6, …]` | — |
 | `prot_abund` | protein | Protein abundance (PaxDb ppm), scalar. **Cell-state-conditional** | `[385.6]` | `"Leptospira interrogans (bacterium), control"` |
