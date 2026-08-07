@@ -312,5 +312,5 @@ class ESM3StructureTokenizer(BaseTokenizer):
 
         return rmsd
 
-# %%
+
 esm3_tokenizer = ESM3StructureTokenizer()
