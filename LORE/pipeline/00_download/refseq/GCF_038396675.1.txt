@@ -1,0 +1,140 @@
+{
+    "reports": [
+        {
+            "accession": "GCF_038396675.1",
+            "annotation_info": {
+                "busco": {
+                    "busco_lineage": "metazoa_odb10",
+                    "busco_ver": "4.1.4",
+                    "complete": 0.9412998,
+                    "duplicated": 0.011530398,
+                    "fragmented": 0.0073375264,
+                    "missing": 0.051362682,
+                    "single_copy": 0.9297694,
+                    "total_count": "954"
+                },
+                "method": "Best-placed RefSeq; Gnomon; cmsearch; tRNAscan-SE",
+                "name": "GCF_038396675.1-RS_2024_06",
+                "pipeline": "NCBI eukaryotic genome annotation pipeline",
+                "provider": "NCBI RefSeq",
+                "release_date": "2024-06-11",
+                "report_url": "https://www.ncbi.nlm.nih.gov/genome/annotation_euk/Hydra_vulgaris/GCF_038396675.1-RS_2024_06.html",
+                "software_version": "10.2",
+                "stats": {
+                    "gene_counts": {
+                        "non_coding": 5639,
+                        "protein_coding": 22797,
+                        "pseudogene": 489,
+                        "total": 28925
+                    }
+                },
+                "status": "Full annotation"
+            },
+            "assembly_info": {
+                "assembly_level": "Complete Genome",
+                "assembly_method": "Flye v. v2.8.3-b1695",
+                "assembly_name": "HydraT2T_AEP",
+                "assembly_status": "current",
+                "assembly_type": "haploid",
+                "bioproject_accession": "PRJNA1085304",
+                "bioproject_lineage": [
+                    {
+                        "bioprojects": [
+                            {
+                                "accession": "PRJNA1085304",
+                                "parent_accessions": ["PRJNA1088499"],
+                                "title": "Genome assembly of Hydra vulgaris strain AEP"
+                            },
+                            {
+                                "accession": "PRJNA1088499",
+                                "title": "Genome assembly of Hydra vulgaris strain AEPx105"
+                            }
+                        ]
+                    }
+                ],
+                "biosample": {
+                    "accession": "SAMN40291295",
+                    "attributes": [
+                        {"name": "ecotype", "value": "Laboratory strain"},
+                        {"name": "dev_stage", "value": "Adult polyp"},
+                        {"name": "collection_date", "value": "2023"},
+                        {"name": "geo_loc_name", "value": "USA"},
+                        {"name": "sex", "value": "not provided"},
+                        {"name": "tissue", "value": "Whole_polyps"},
+                        {"name": "biomaterial_provider", "value": "Robert E. Steele"},
+                        {"name": "collected_by", "value": "Robert E. Steele"},
+                        {"name": "strain", "value": "AEPx105"}
+                    ],
+                    "biomaterial_provider": "Robert E. Steele",
+                    "bioprojects": [{"accession": "PRJNA1085048"}],
+                    "collected_by": "Robert E. Steele",
+                    "collection_date": "2023",
+                    "description": {
+                        "comment": "Whole polyp",
+                        "organism": {
+                            "organism_name": "Hydra vulgaris",
+                            "tax_id": 6087
+                        },
+                        "title": "Model organism or animal sample from Hydra vulgaris"
+                    },
+                    "dev_stage": "Adult polyp",
+                    "ecotype": "Laboratory strain",
+                    "geo_loc_name": "USA",
+                    "last_updated": "2024-05-22T13:35:50.493",
+                    "models": ["Model organism or animal"],
+                    "owner": {
+                        "contacts": [{}],
+                        "name": "University of Vienna"
+                    },
+                    "package": "Model.organism.animal.1.0",
+                    "publication_date": "2024-03-30T00:00:00.000",
+                    "sample_ids": [
+                        {"label": "Sample name", "value": "AEPx105_Nanopore"},
+                        {"db": "SRA", "value": "SRS20680875"}
+                    ],
+                    "sex": "not provided",
+                    "status": {
+                        "status": "live",
+                        "when": "2024-03-30T06:40:44.800"
+                    },
+                    "strain": "AEPx105",
+                    "submission_date": "2024-03-07T02:07:04.023",
+                    "tissue": "Whole_polyps"
+                },
+                "blast_url": "https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE_TYPE=BlastSearch&PROG_DEF=blastn&BLAST_SPEC=GDH_GCF_038396675.1",
+                "paired_assembly": {
+                    "accession": "GCA_038396675.1",
+                    "status": "current"
+                },
+                "refseq_category": "reference genome",
+                "release_date": "2024-04-02",
+                "sequencing_tech": "PacBio Sequel II and Oxford Nanopore PromethION",
+                "submitter": "University of Vienna"
+            },
+            "assembly_stats": {
+                "contig_l50": 7,
+                "contig_n50": 61145917,
+                "gc_count": "252980792",
+                "gc_percent": 27.5,
+                "genome_coverage": "21.0x",
+                "number_of_component_sequences": 15,
+                "number_of_contigs": 15,
+                "number_of_scaffolds": 15,
+                "scaffold_l50": 7,
+                "scaffold_n50": 61145917,
+                "total_number_of_chromosomes": 15,
+                "total_sequence_length": "911675201",
+                "total_ungapped_length": "911675201"
+            },
+            "current_accession": "GCF_038396675.1",
+            "organism": {
+                "common_name": "swiftwater hydra",
+                "organism_name": "Hydra vulgaris",
+                "tax_id": 6087
+            },
+            "paired_accession": "GCA_038396675.1",
+            "source_database": "SOURCE_DATABASE_REFSEQ"
+        }
+    ],
+    "total_count": 1
+}

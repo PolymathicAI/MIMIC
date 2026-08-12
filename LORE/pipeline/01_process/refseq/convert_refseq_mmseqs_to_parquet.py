@@ -1,0 +1,39 @@
+import sys
+import pandas as pd
+from tqdm import tqdm
+from lore import logger
+
+tqdm.pandas()
+
+def trim_refseq_id(refseq_id):
+    """Trim the refseq name from a RefSeq ID if present."""
+    return refseq_id.split('|')[0]
+
+def convert_mmseqs_tsv_to_parquet(input_tsv, output_parquet):
+    # Read the TSV file using pandas
+    logger.info(f"Reading TSV file from {input_tsv}")
+    df = pd.read_csv(input_tsv, sep="\t", header=None, names=["cluster_centroid", "refseq_id"])
+    
+    logger.info(f"DataFrame shape: {df.shape}")
+    logger.info(f"Trimming RefSeq from name")
+    df["genome_feature_id"] = df["refseq_id"].progress_apply(trim_refseq_id)
+    df = df.drop(columns=["refseq_id"])
+    df["cluster_centroid"] = df["cluster_centroid"].progress_apply(trim_refseq_id)
+
+    logger.info(f"Getting rid of duplicate rows")
+    df = df.drop_duplicates()
+
+    # Save the DataFrame to a Parquet file
+    logger.info(f"Writing Parquet file to {output_parquet}")
+    df.to_parquet(output_parquet, index=False)
+    logger.info(f"Converted {input_tsv} to {output_parquet}")
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Usage: python convert_refseq_mmseqs_to_parquet.py input.tsv output.parquet")
+        sys.exit(1)
+    
+    input_tsv = sys.argv[1]
+    output_parquet = sys.argv[2]
+    
+    convert_mmseqs_tsv_to_parquet(input_tsv, output_parquet)
