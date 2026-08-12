@@ -1,0 +1,191 @@
+# Input configuration for stage 02 (master-id table, clustering, splits).
+#
+# This is the configuration that produced the PUBLIC RELEASE (master_ids 3.0, which
+# LORE 4.0 was built from). It is byte-identical to ../../configs/master_ids_3.0.yaml,
+# duplicated here because the scripts in this directory load `config.yaml` from their
+# own directory. Treat `configs/master_ids_3.0.yaml` as the archival record.
+#
+# The master table is one row per (uniprot_id, genome_feature_id) pairing, carrying for
+# each modality either its length, an existence flag, or a raw value:
+#   transform: len     -> <modality>_length column
+#   transform: exists  -> has_<modality> boolean
+#   transform: None    -> value copied through
+#
+# `precomputed_modalities` attaches the four sequence clusterings. Those are the columns
+# that make user-drawn, leak-free splits possible; the released split column was assigned
+# from COALESCE(protein_cluster_30, rna_cluster_30) only, which is why it is
+# contaminated. See ../../README.md.
+master_id_version: 3.0
+seed: 42
+# The id below is required and provides the protein <-> transcript map
+id_match:
+  transform: None
+  stage: intermediate
+  name: transcripts
+  version: 1.4
+  path: final_merged_annotations.parquet
+
+modalities:
+  aa_seq:
+    version: v4_plddt_70
+    merge_key: uniprot_id
+    col_name: sequence
+    transform: len
+  masif:
+    version: v4_10m
+    merge_key: uniprot_id
+    transform: exists
+  prot_struct:
+    version: afdb70_esm3_tok
+    merge_key: uniprot_id
+    transform: exists
+  funcprot_caption:
+    version: 1.2
+    merge_key: uniprot_id
+    transform: exists
+  rna_seq:
+    version: 1.4
+    merge_key: genome_feature_id
+    transform: len
+  rna_codons:
+    version: 1.4
+    merge_key: genome_feature_id
+    transform: exists
+  utr:
+    version: 1.4
+    merge_key: genome_feature_id
+    transform: exists
+  signal_codons:
+    version: 1.4
+    merge_key: genome_feature_id
+    transform: exists
+  domain:
+    version: 1.4
+    merge_key: genome_feature_id
+    transform: None
+  kingdom:
+    version: 1.4
+    merge_key: genome_feature_id
+    transform: None
+  phylum:
+    version: 1.4
+    merge_key: genome_feature_id
+    transform: None
+  class:
+    version: 1.4
+    merge_key: genome_feature_id
+    transform: None
+  order:
+    version: 1.4
+    merge_key: genome_feature_id
+    transform: None
+  family:
+    version: 1.4
+    merge_key: genome_feature_id
+    transform: None
+  genus:
+    version: 1.4
+    merge_key: genome_feature_id
+    transform: None
+  species:
+    version: 1.4
+    merge_key: genome_feature_id
+    transform: None
+  is_coding:
+    version: 1.4
+    merge_key: genome_feature_id
+    transform: None
+  feature_type:
+    version: 1.4
+    merge_key: genome_feature_id
+    transform: None
+  phylop_human:
+    version: 1.4
+    merge_key: genome_feature_id
+    transform: exists
+  phylop_mouse:
+    version: 1.4
+    merge_key: genome_feature_id
+    transform: exists
+  splice_junctions:
+    version: 1.4
+    merge_key: genome_feature_id
+    transform: exists
+
+
+precomputed_modalities:
+  protein_cluster_30:
+    merge_key: uniprot_id
+    transform: None
+    stage: intermediate
+    name: uniref90
+    version: 30pct_afdb70
+    fmt: parquet
+    path: 30pct_afdb70.parquet
+    col_name: cluster_centroid
+
+  protein_cluster_70:
+    merge_key: uniprot_id
+    transform: None
+    stage: intermediate
+    name: uniref90
+    version: 70pct_afdb70
+    fmt: parquet
+    path: 70pct_afdb70.parquet
+    col_name: cluster_centroid
+
+  rna_cluster_30:
+    merge_key: genome_feature_id
+    transform: None
+    stage: intermediate
+    name: transcripts
+    version: 1.2
+    fmt: mmseqs
+    path: refseq_0.3_cluster.parquet
+    col_name: cluster_centroid
+
+  rna_cluster_70:
+    merge_key: genome_feature_id
+    transform: None
+    stage: intermediate
+    name: transcripts
+    version: 1.2
+    fmt: mmseqs
+    path: refseq_0.7_cluster.parquet
+    col_name: cluster_centroid
+
+  transcripts:
+    stage: intermediate
+    name: transcripts
+    version: 1.4
+    path: final_merged_annotations.parquet
+    merge_key: genome_feature_id
+    keys:
+      - key: CDS_coordinates
+        transform: len
+      - key: splice_region_coordinates
+        transform: None
+      - key: genome
+        transform: None
+      - key: feature_id
+        transform: None
+      - key: root_id
+        transform: None
+
+mutually_exclusive_modalities:
+  prot_abund:
+    version: 1.1
+    merge_key: uniprot_id
+    transform: exists
+  rasp2:
+    version: 1.4
+    merge_key: genome_feature_id
+    transform: exists
+  atac:
+    version: 1.4
+    merge_key: genome_feature_id
+    transform: exists
+  cage:
+    version: 1.4
+    merge_key: genome_feature_id
+    transform: exists

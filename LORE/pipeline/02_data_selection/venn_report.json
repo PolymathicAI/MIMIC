@@ -1,0 +1,115 @@
+{
+  "cohorts": [
+    {
+      "desc": "All species",
+      "prefix": "all",
+      "total_rows": 63987526,
+      "total_roots": 4847712,
+      "leaked_rows": 59032655,
+      "leaked_roots": 27082,
+      "pure_rows": 2589003,
+      "pure_roots": 2482285,
+      "subsets": {
+        "111": 2589003,
+        "100": 1778436,
+        "010": 11,
+        "110": 386307,
+        "001": 12,
+        "011": 2927,
+        "101": 198175
+      }
+    },
+    {
+      "desc": "All species (Coding)",
+      "prefix": "all_coding",
+      "total_rows": 4679120,
+      "total_roots": 4591385,
+      "leaked_rows": 52845,
+      "leaked_roots": 19169,
+      "pure_rows": 2410067,
+      "pure_roots": 2362673,
+      "subsets": {
+        "111": 2410067,
+        "100": 1730818,
+        "010": 11,
+        "110": 286817,
+        "001": 12,
+        "011": 2863,
+        "101": 195687
+      }
+    },
+    {
+      "desc": "All species (Non-coding)",
+      "prefix": "all_noncoding",
+      "total_rows": 325897,
+      "total_roots": 249964,
+      "leaked_rows": 18430,
+      "leaked_roots": 2627,
+      "pure_rows": 178474,
+      "pure_roots": 122649,
+      "subsets": {
+        "111": 178474,
+        "100": 26968,
+        "110": 99490,
+        "011": 53,
+        "101": 2482
+      }
+    },
+    {
+      "desc": "Homo sapiens",
+      "prefix": "hs",
+      "total_rows": 70332,
+      "total_roots": 15329,
+      "leaked_rows": 29770,
+      "leaked_roots": 3454,
+      "pure_rows": 36048,
+      "pure_roots": 9675,
+      "subsets": {
+        "111": 36048,
+        "100": 2957,
+        "110": 1386,
+        "101": 171
+      }
+    },
+    {
+      "desc": "Homo sapiens (Coding)",
+      "prefix": "hs_coding",
+      "total_rows": 23514,
+      "total_roots": 4369,
+      "leaked_rows": 18969,
+      "leaked_roots": 3200,
+      "pure_rows": 3041,
+      "pure_roots": 630,
+      "subsets": {
+        "111": 3041,
+        "100": 1375,
+        "110": 64,
+        "101": 65
+      }
+    },
+    {
+      "desc": "Homo sapiens (Non-coding)",
+      "prefix": "hs_noncoding",
+      "total_rows": 46818,
+      "total_roots": 11963,
+      "leaked_rows": 10801,
+      "leaked_roots": 1047,
+      "pure_rows": 33007,
+      "pure_roots": 9197,
+      "subsets": {
+        "111": 33007,
+        "100": 1582,
+        "110": 1322,
+        "101": 106
+      }
+    }
+  ],
+  "best": {
+    "rows": 2589003,
+    "roots": 2482285
+  },
+  "good": {
+    "rows": 2978248,
+    "roots": 2868392
+  }
+}

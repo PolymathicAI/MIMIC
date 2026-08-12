@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+
+# Index artifacts and any local copy of the data: never commit these.
+lore_index/
+index_parts/
+*.parquet
+*.tar
+subsets.json
+
+# Pipeline scratch
+slurm_logs/
+slurm-*.out
+*.log
+assets/

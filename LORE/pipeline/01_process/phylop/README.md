@@ -1,0 +1,2 @@
+In this folder, we fetch the PhyloP data for the transcripts that have been curated from GENCODE. For this purpose, the refseq folder needs to be run first. The output is placed in 
+```path_output = paths.get_path(data_type="data", stage="modality", name="phylop", version="0.1")  / "dataset.parquet"```

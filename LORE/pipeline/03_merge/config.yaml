@@ -1,0 +1,107 @@
+# Input configuration for stage 03 (merge -> tokenize -> shard).
+#
+# ⚠ This is an OLDER TEMPLATE (version 1.5), kept because the scripts here load
+# `config.yaml` from their own directory. It is NOT the configuration that produced the
+# public release. For that, see ../../configs/merge_config_4.0.yaml — which is the
+# generated form of this file at version 4.0, and the authoritative record of the
+# subsets, modality versions and tokenizer versions actually used.
+#
+# To rebuild LORE 4.0, copy the version/master_id_version, length_splits,
+# extra_validations, modalities and mutually_exclusive_modalities blocks from
+# merge_config_4.0.yaml over the corresponding blocks below (drop its generated
+# `column_mapping` entries; 02_merge_script.py rewrites them).
+version: 1.5
+master_id_version: 1.5
+name: lore
+fmt: parquet
+seed: 42
+# length splits are log space between 400 and 10_000 with 16 splits
+length_splits: [400, 495, 614, 761, 943, 1169, 1449, 1796, 2226, 2759, 3419, 4238, 5253, 6510, 8068, 10000]
+val_length_splits: [400, 900, 2000, 4500, 10000]
+min_split_size: 200
+samples_per_tar: 4096
+max_val_samples: 8000
+extra_validations:
+  transcription:
+    id_filename: val_transcription.parquet
+    modalities: [aa_seq, rna_seq, cds]
+  coding_class:
+    id_filename: val_coding_class.parquet
+    modalities: [rna_seq, splice_regions, is_coding]
+  funcprot_caption:
+    id_filename: val_funcprot_caption.parquet
+    modalities: [aa_seq, funcprot_caption]
+# We drop rows that do not have at least one of these
+required_modalities: [aa_seq, rna_seq]
+git_test_config:
+  num_splits: 2
+  num_subsets: 2
+  samples_per_split: 4
+modalities:
+  aa_seq: 
+    version: v4_plddt_70
+    merge_key: uniprot_id
+  dssp:
+    version: v4_plddt_70
+    merge_key: uniprot_id
+  sasa:
+    version: v4_plddt_70
+    merge_key: uniprot_id
+  masif:
+    version: v4_10m
+    merge_key: uniprot_id
+    prepend_text: masif_
+  prot_struct:
+    version: afdb70_esm3_tok
+    merge_key: uniprot_id
+  funcprot_caption:
+    version: 1.2
+    merge_key: uniprot_id
+  # rna_codons: Taking out for the first run since tokenizer is missing
+  #   version: 1.3
+  #   merge_key: uniprot_id
+  #   ignore_cols: ['genome_feature_id']
+  phylop_human:
+    version: 1.3
+    merge_key: genome_feature_id
+  phylop_mouse:
+    version: 1.3
+    merge_key: genome_feature_id
+  rna_seq:
+    version: 1.3
+    merge_key: genome_feature_id
+  splice_regions:
+    version: 1.3
+    merge_key: genome_feature_id
+  splice_junctions:
+    version: 1.3
+    merge_key: genome_feature_id
+  cds:
+    version: 1.3
+    merge_key: genome_feature_id
+  cds_junctions:
+    version: 1.3
+    merge_key: genome_feature_id
+  utr:
+    version: 1.3
+    merge_key: genome_feature_id
+  signal_codons:
+    version: 1.3
+    merge_key: genome_feature_id
+  kingdom:
+    version: 1.3
+    merge_key: genome_feature_id
+  is_coding:
+    version: 1.3
+    merge_key: genome_feature_id
+  feature_type:
+    version: 1.3
+    merge_key: genome_feature_id
+
+mutually_exclusive_modalities:
+  prot_abund:
+    version: v5
+    merge_key: uniprot_id
+  rasp2:
+    version: 1.3
+    merge_key: genome_feature_id
